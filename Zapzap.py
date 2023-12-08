@@ -4,6 +4,20 @@ import os
 import pickle
 import time
 
+whatsApp2 = '''
+          #                   #                                                             ####
+ #     #  #                   #                           #                                #    #
+ #     #  #                   #                           #                                     #
+ #     #  ######    ######  ######    #####              ###    ######   ######                #
+ #  #  #  #     #  #     #    #      #                   # #    #     #  #     #              #
+ # # # #  #     #  #     #    #       ####              #####   #     #  #     #             #
+ ##   ##  #     #  #    ##    #           #             #   #   #     #  #     #            #
+ #     #  #     #   #### #     ###   #####             ##   ##  ######   ######            ######
+                                                                #        #
+                                                                #        #
+'''
+print(whatsApp2)
+
 # Dados
 conversa = set()
 membros = []
@@ -26,6 +40,7 @@ PORT = int(myIP.split(':')[1])
 # Informações do grupo
 membrosSTR = input("Insira os membros: ")
 membros = [(memberHost, int(memberPort)) for memberHost, memberPort in (item.split(':') for item in membrosSTR.split())]
+password = input("Insira a senha de criptografia do grupo: ")
 
 # OBJ mensagem
 class Mensagem:
@@ -121,23 +136,42 @@ def eventualSync(sock, clock):
         send_message(sock, clock, 'syncRequest', membros, SYN)
         time.sleep(SYNCTIME)
 
+# Encriptação
+def encrypt(text: str, key):
+    secretText = ''
+
+    for index, char in enumerate(text):
+        secretText = secretText + chr(ord(char) + int(key[index % len(key)]))
+    
+    return secretText
+
+# Decriptação
+def decrypt(secretText: str, key):
+    text = ''
+
+    for index, char in enumerate(secretText):
+        text = text + chr(ord(char) - int(key[index % len(key)]))
+    
+    return text
+
 # Ordena as mensagens
-def consensusSort(conversaList):
-    if bool(conversaList):
-        conversaList.sort(key=lambda x: (x.timestamp, x.user))
+def consensusSort(sortableChat):
+    if bool(sortableChat):
+        sortableChat.sort(key=lambda x: (x.timestamp, x.user))
 
 # Mostra as mensagens em ordem
 def printSort():
-    conversaList = list(conversa)
-    consensusSort(conversaList)
+    sortableChat = list(conversa)
+    consensusSort(sortableChat)
 
     os.system('cls')
-    for msg in conversaList:
+    for msg in sortableChat:
         msg: Mensagem
-        print(f'{msg.user[0]}:{msg.user[1]}: {msg.texto}')        
-        # print(f'{msg.user[0]}:{msg.user[1]} - {msg.timestamp}: {msg.texto}')
+        colorIndex = f"\033[38;5;{msg.user[1] % (255 + 1)}m"
+
+        print(f'{colorIndex}{msg.user[0]}:{msg.user[1]}\033[0m: {decrypt(msg.texto, password)}')        
     
-    del conversaList
+    del sortableChat
 
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -159,7 +193,7 @@ def main():
     send_message(sock, clock, 'first', membros, SYN)
     while True:
         message = input()
-        send_message(sock, clock, message, membros, MSG)
+        send_message(sock, clock, encrypt(message, password), membros, MSG)
         printSort()
 
 if __name__ == "__main__":
