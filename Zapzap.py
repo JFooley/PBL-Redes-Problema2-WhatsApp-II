@@ -6,7 +6,7 @@ import time
 
 whatsApp2 = '''
           #                   #                                                             ####
- #     #  #                   #                           #                                #    #
+ #     #  #                   #                           #                                #    #   TM
  #     #  #                   #                           #                                     #
  #     #  ######    ######  ######    #####              ###    ######   ######                #
  #  #  #  #     #  #     #    #      #                   # #    #     #  #     #              #
@@ -169,7 +169,10 @@ def printSort():
         msg: Mensagem
         colorIndex = f"\033[38;5;{msg.user[1] % (255 + 1)}m"
 
-        print(f'{colorIndex}{msg.user[0]}:{msg.user[1]}\033[0m: {decrypt(msg.texto, password)}')        
+        if (msg.user[0] == HOST and msg.user[1] == PORT):
+            print(f'{decrypt(msg.texto, password)} :{colorIndex}{msg.user[0]}:{msg.user[1]}\033[0m'.rjust(100))
+        else:
+            print(f'{colorIndex}{msg.user[0]}:{msg.user[1]}\033[0m: {decrypt(msg.texto, password)}')        
     
     del sortableChat
 
@@ -179,7 +182,7 @@ def main():
 
     clock = LamportClock()
 
-    # Threads
+    # Threads secundárias
     receive_thread = threading.Thread(target=listner, args=(sock, clock), daemon=True)
     receive_thread.start()
 
