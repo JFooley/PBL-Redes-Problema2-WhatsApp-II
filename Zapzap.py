@@ -167,10 +167,10 @@ def printSort():
     os.system('cls')
     for msg in sortableChat:
         msg: Mensagem
-        colorIndex = f"\033[38;5;{msg.user[1] % (255 + 1)}m"
+        colorIndex = f"\033[38;5;{(sum(int(digito) for digito in msg.user[0] if digito.isdigit()) + msg.user[1] ) % (255 + 1)}m"
 
         if (msg.user[0] == HOST and msg.user[1] == PORT):
-            print(f'{decrypt(msg.texto, password)} :{colorIndex}{msg.user[0]}:{msg.user[1]}\033[0m'.rjust(100))
+            print(f'{colorIndex}Você\033[0m: {decrypt(msg.texto, password)}')
         else:
             print(f'{colorIndex}{msg.user[0]}:{msg.user[1]}\033[0m: {decrypt(msg.texto, password)}')        
     
