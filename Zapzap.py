@@ -88,7 +88,8 @@ def send_message(sock, clock, message, membros, type):
 
     data = pickle.dumps((message, lamport_time, type))
     for pairAdress in membros:
-        sock.sendto(data, pairAdress)
+        if pairAdress != (HOST, PORT):
+            sock.sendto(data, pairAdress)
         
 # Recebe pacotes
 def listner(sock, clock):
@@ -165,6 +166,7 @@ def printSort():
     consensusSort(sortableChat)
 
     os.system('cls')
+    os.system('clear')
     for msg in sortableChat:
         msg: Mensagem
         colorIndex = f"\033[38;5;{(sum(int(digito) for digito in msg.user[0] if digito.isdigit()) + msg.user[1] ) % (255 + 1)}m"
