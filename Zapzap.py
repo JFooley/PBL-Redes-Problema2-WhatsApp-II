@@ -17,6 +17,7 @@ whatsApp2 = '''
                                                                 #        #
 '''
 print(whatsApp2)
+print("Seu IP -", socket.gethostbyname(socket.gethostname()))
 
 # Dados
 conversa = set()
