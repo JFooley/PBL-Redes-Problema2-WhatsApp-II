@@ -36,6 +36,13 @@
 
 # 2. Desenvolvimento
 <p style="text-align: justify;">
+  Tendo em vista os requisitos do problema foi pensado para ser solucionado da seguinte forma: Cada usuário da rede vai executar o programa e este vai se conectar diretamente a todos os demais nós (usuários) da rede realizando trocas de pacotes peer-to-peer. Cada programa conta com 1 thread de execução principal e 3 secundárias que são executadas paralelamente. 
+  
+  A thread principal tem um trabalho bem objetivo e simples: pedir as informações ao usuário (quem são os pares do grupo, a chave de criptografia, etc) e enviar as mensagens do usário no momento em que ele as digitar. Pralelamente, uma thread executa o método Listner, que fica escutando uma porta através do socket para receber os pacotes enviados dos outros nós a ele, sejam mensagens ou o que for. A thread Lister não realizada nenhuma ação com os pacotes além de adiciona-los a uma lista pkgCache, um cache que guarda todos os pacotes temporáriamente. Esse cache é necessário pois durante o tempo em que uma mensagem está sendo tratada e alguma ação está sendo executada, possa ser que uma nova mensagem chegue e caso o programa não esteja aguardando ela, esse pacote será perdido. 
+  
+  Para tratar as mensagens uma outra thread: pkgSort. Essa thread é responsável por pegar uma a uma as mensagens do cache e dar o seu devido destino a elas. As mensagens podem ser de 3 tipos diferentes, seja uma mensagem nova, uma mensagem antiga recuperada ou uma mensagem espcial de solicitação de sincronização. Utilizando essa thread junto ao cache, o programa consegue receber e tratar de forma correta novos pacotes minimizando ao máximo a perda de pacotes, já que a thread que espera por novos dados apenas adiciona no cache e fica aguardando novos, enquanto a thread pkgSort realiza a filtragem dessa mensangens, já que ela não precisa aguradar nada.
+  
+  A ultima thread que é executada sozinha no programa é a eventualSync, uma thread responsável por executar solicitações de sincronização para os nós da rede para garantir que as mensagens se mantenham atualizadas. Essa solicitação é realizada de X em X tempo, sendo esse X definito em código. Dessa forma, mesmo que um pacote se perca, aquela mensagem não vai ser perdida já que para isso acontecer ela teria que falhar na vinda de todos os computadores da rede. 
   
 </p>
 
