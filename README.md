@@ -45,8 +45,16 @@
   A ultima thread que é executada sozinha no programa é a eventualSync, uma thread responsável por executar solicitações de sincronização para os nós da rede para garantir que as mensagens se mantenham atualizadas. Essa solicitação é realizada de X em X tempo, sendo esse X definito em código. Dessa forma, mesmo que um pacote se perca, aquela mensagem não vai ser perdida já que para isso acontecer ela teria que falhar na vinda de todos os computadores da rede. 
 
   Um dos desafios chave desse problema é a questão da ordenação das mensagens. Manter a ordem das mensangens em todos os usuários é uma tarefa, de incio, dificil, afinal, devido a caracteristica da comunicação via pacotes, mesmo enviando para todos os usuários ao mesmo tempo não existe nenhuma garantia de que aquele pacote irá chegar ao mesmo tempo para todos os usuários e nem se ele irá de fato chegar. Dessa forma, a sincronia das mensagens não pode utilizar como parâmetro a ordem de chegada dos pacotes. Para resolver esse problema, foi pensado o seguinte: Cada mensagem (lembrando que: mensagem ≠ pacote) precisa ter um indice universal que indique em qual ordem ela deve ficar; cada mensagem precisa de uma forma de identificação unica, para que não exista problemas em caso de duas mensagens possuirem o mesmo indice; deve haver um algorítimo unico que ordene as mensagens de forma que garanta que, independente das maquinas, as mensagens A, B, C, ... N possuam a mesma ordem para todos.
+
+  - Indice e identificador unico
+
+  Para garantir o indice e a forma de identificação unica foram pensadas diversas soluções utilizando geradores de ID, encadeamento de mensagens, entre outros, porém, a adotada foi mais simples e mais eficiente: a utilização de um Relógio Lógico de Lamport. Relógios lógicos são utilizados em sistemas distribuídos para sincronização de mensagens entre sistemas, eles consistem em contadores que se incrementam com suas ações e esse valor do contador é utilizado como um "timestamp" que indica a hora lógica em que aquele evento ocorreu. 
   
+  No sistema implementado, já que a ação é cada nó enviar a mensagem para todos os outros nós, o increemento do relógio acontece apenas no envio da mensagem e o reajuste do relógio no recebimento. Os relógios de cada nó não precisam ter o mesmo valor para estarem sincronizados, eles precisam apenas respeitar a seguinte regra: Toda mensagem recebida é um evento do passado, ou seja, foi escrita e enviada em um tempo lógico do passado, dessa forma elas obrigatóriamente devem possuir um tempo lógico menor do que o do relógio lógico do nó que está a recebendo. Caso o timestamp dela seja maior do que a hora lógica do nó, esta mensagem está vindo do futuro (o que é impossivel) então isso significa que o relógio está atrasado e deve ser ajustado para o tempo lógico N + 1, sendo N o timestamp da mensagem. A figura abaixo representa visualmente o processo de troca de mensagens entre dois nós com seus respectivos relógios lógicos.
 </p>
+
+![Visualização do relógio logico.](https://github.com/JFooley/PBL-Redes-Problema2-WhatsApp-II/blob/b4f6e379d137003a113947a62d037f8aee8e7b68/Imagens/Imagem%201.png)
+
 
 # 3. Resultados
 <p style="text-align: justify;">
