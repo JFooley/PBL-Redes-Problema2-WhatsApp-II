@@ -133,8 +133,6 @@ def sendChat(sock, clock, adress):
             data = pickle.dumps((partMessage, lamport_time, CSP))
             sock.sendto(data, adress)
 
-            print(f"CSP: {mensagemOBJ.user} to {adress}")
-
 # A cada X segundos realiza uma sincronização
 def eventualSync(sock, clock):
     while True:
