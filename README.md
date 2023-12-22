@@ -17,6 +17,7 @@
 </div>
 
 # 1. Introdução
+
 <p style="text-align: justify;>
   A comunicação é um dos aspectos mais importantes para o funcionamento da sociedade. Desde a antiguidade a humanidade sempre buscou formas de se comunicar a distancia, incialmente através de mensageiros, cartas e bilhetes até posteriormente com meios mais modernos como telefones, telégrafos e etc. Com a internet não foi diferente, a comunicação rápida e de larga escalabilidade oferecida pelas redes de computadores permitiu um novo avanço: a troca de mensagens instantâneas. O surgimentos das redes sociais ampliou ainda mais esse aspecto, se tornando uma feature quase que enssencial dentro desses ambientes.
   
@@ -33,9 +34,11 @@
 - Não utilizar servidores de tempo
 
    A linguagem de programação utilizada no desenvolvimento do mensagteiro foi o Python na versão 3.12 e suas libs nativas. A metodologia do desenvolvimento utilizada foi a Problem Based Learning (PBL), onde os alunos discutiram em grupo a os passos para solucionar o problema apresentadoe e construir a aplicação com os requisitos determinados pelos tutores.
+  
 </p>
 
 # 2. Desenvolvimento
+
 <p style="text-align: justify;">
   Tendo em vista os requisitos do problema foi pensado para ser solucionado da seguinte forma: Cada usuário da rede vai executar o programa e este vai se conectar diretamente a todos os demais nós (usuários) da rede realizando trocas de pacotes peer-to-peer. Cada programa conta com 1 thread de execução principal e 3 secundárias que são executadas paralelamente. 
   
