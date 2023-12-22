@@ -33,7 +33,7 @@
 - Não utilizar relógio fisico nem medidas de tempo do gênero uma vez que são imprecisas e não confiáveis
 - Não utilizar servidores de tempo
 
-   A linguagem de programação utilizada no desenvolvimento do mensagteiro foi o Python na versão 3.12 e suas libs nativas. A metodologia do desenvolvimento utilizada foi a Problem Based Learning (PBL), onde os alunos discutiram em grupo a os passos para solucionar o problema apresentadoe e construir a aplicação com os requisitos determinados pelos tutores.
+  A linguagem de programação utilizada no desenvolvimento do mensagteiro foi o Python na versão 3.12 e suas libs nativas. A metodologia do desenvolvimento utilizada foi a Problem Based Learning (PBL), onde os alunos discutiram em grupo a os passos para solucionar o problema apresentadoe e construir a aplicação com os requisitos determinados pelos tutores.
   
 </p>
 
@@ -89,9 +89,9 @@
 
   - Sincronização
 
-    Visando alcançar o sistema de sincronização proposto, foi implementada uma diferenciação nos pacotes pelo seu tipo, sendo eles: MSG, mensagem comum, enviada naquele momemnto; SYN, pacote de sicronização, que solicita que os demais nós enviem suas conversas; CSP (chat sync part), "pedaço" da conversa enviado como sincronização, ou seja, mensagens antigas individuais.
+  Visando alcançar o sistema de sincronização proposto, foi implementada uma diferenciação nos pacotes pelo seu tipo, sendo eles: MSG, mensagem comum, enviada naquele momemnto; SYN, pacote de sicronização, que solicita que os demais nós enviem suas conversas; CSP (chat sync part), "pedaço" da conversa enviado como sincronização, ou seja, mensagens antigas individuais.
     
-    Para enviar a conversa foi criada uma função sendChat que envia para o nó solicitante cada uma das mensagens antigas como pacotes do tipo CSP, com exceção apenas dos que possuem o mesmo endereço do nó solicitante. Essa função é chamada quando uma mensagem do tipo SYN é retirada da fila do cachê e lida pela thread pkgSort. Já no caso da solicitação de sincronização ela é feita no início do programa, antes de enviar a primeira mensagem, através do envio de um pacote SYN e também eventualmente pela thread eventualSync, que envia um pacote SYN a cada X segundos. O tempo de X é determinado pela constante SYNCTIME.
+  Para enviar a conversa foi criada uma função sendChat que envia para o nó solicitante cada uma das mensagens antigas como pacotes do tipo CSP, com exceção apenas dos que possuem o mesmo endereço do nó solicitante. Essa função é chamada quando uma mensagem do tipo SYN é retirada da fila do cachê e lida pela thread pkgSort. Já no caso da solicitação de sincronização ela é feita no início do programa, antes de enviar a primeira mensagem, através do envio de um pacote SYN e também eventualmente pela thread eventualSync, que envia um pacote SYN a cada X segundos. O tempo de X é determinado pela constante SYNCTIME.
 
   - Conversa
 
@@ -102,24 +102,26 @@
   Como discutido na secção anterior, a solução pensada para o sistema foi uma chave de criptografia previamente determinada pelos usuários que permite os nós interpretarem o conteúdo das mensagens. No código, a encriptação da mensagem é feita no mommento em que o input da mensagem é inserido e a decriptação apenas no momemnto em que a mensagem vai ser exibida na tela, ou seja, a mensagem permanece encriptada durante todo o funcionamento do programa em que ela não está sendo exibida pro usuário.
 
   A encriptação e decriptação é feita respectivamente pelas funções encrypt e decrypt. Elas funcionam com um mecanismo básico de embaralhamento de caracteres em que cada letra é transformada em seu valor numérico e depois é somado a um dos digitos da chave a depender do indice da letra que está sendo trocada para, por fim, ser transformada novamente em um novo caractere. A função de decriptação funciona de forma análoga, com a unica diferença de que ao invés de somar o digito é subtraído, o que faz com que volte ao caractere original. 
-  
 </p>
 
 # 4. Considerações finais
 <p style="text-align: justify;">
+  As soluções adotadas descritas neste relatório resultam em um programa relativamente simples mas que cumpre os requisitos apresentados pelo problema de oferece um chat de mensagens instantâneas com arquitetura de sistema distribuído que oferece troca de mensagens consensualmente ordenadas e criptografadas, utilizando o protocolo UDP e considerando o modelo de falhas.
 
-  falhar conhecidas:
-  - Inundação de pacotes na rede que escala com o tamanho da conversa
-  - Dessincronização temporária no caso da perda de pacote
-
-  melhorias:
-  - Mandar apenas os IDs das mensagens e devolverem só as mensagens que faltam deixando o processo mais eficiente 
-  - Implementar um gatilho de sincronização mais eficiente 
-  - Implementar um campo de "nome" e um broadcast na rede que retorna os dispositivos online e mostra ao usuário permitindo ele saber qual o IP identificado pelo nome com mais facilidade e criar o grupo apenas escrevendo nome dos participantes
+  Apesar de cumprir com seu papel, o programa tem algumas desvantagens conhecidas devido a natureza da sua implementação, sendo elas: inundação da rede com mensagens CSP diretamente proporcional ao crescimento da conversa; criptografia simples e eficiente, porém não ideal para aplicações de maior escala e muito menos para aplicações na internet; dessincronização temporária no limite da perda do pacote da mensagem em todos os nós durante a sincronização; ausencia de confirmação de pacotes através de ACKs.
+  
+  Dessa forma, algumas melhorias que podem ser futuramente implementadas no código futuramente. Uma delas é o envio da lista dos identificadoes unicos das mensagens para os nós durante a sincronização, pois dessa forma cada nó iria analisar e enviar de volta apenas as mensagens ausentes, sanando o problema de inundação da rede com pacotes CSP. Outro ponto que pode ser aprimorado no sistema é a implementação de um gatilho mais eficiente para a sincronização eventual que não dependa de tempo, principalmente se for um que utilize alguma parametro estatistico (como a taxa de perda de pacotes) para determinar se a conversa pode ou não está comprometida e solicitar a sincronização. Por fim, uma mudança voltada a tornar a aplicação mais "user friendly" é fazer com que cada usuario possua um nome e, através de um broadcast, a aplicação mostre ao usuário o nome dos usuários online, permitindo ele criar o grupo apenas digitando os nomes e abstraindo por trás toda a parte de inserção de ip/porta dos participantes.
 </p>
 
 # 5. Referencias
 <p style="text-align: justify;">
+  threading — Thread-based parallelism. Python Software Foundation. 2023. Disponível em: https://docs.python.org/3/library/threading.html. Acesso em: 22 de novembro de 2023.
+
+  socket — Interface de rede de baixo nível. Python Software Foundation. 2023. Disponível em: https://docs.python.org/pt-br/3/library/socket.html Acesso em: 24 de novembro de 2023.
+
+  pickle — Python object serializatio. Python Software Foundation. 2023. Disponível em: https://docs.python.org/3/library/pickle.html Acesso em: 24 de novembro de 2023.
+
+  CARVALHO, Marcus. Sistemas Distribuídos - 5.2 Relógios lógicos. YouTube, 2023. Disponível em: https://www.youtube.com/watch?v=xK0K3RY5xco&t=1452s Acesso em: 01 de Dezembro de 2023.
 
 </p>
 
