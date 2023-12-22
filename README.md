@@ -43,27 +43,56 @@
   Para tratar as mensagens uma outra thread: pkgSort. Essa thread é responsável por pegar uma a uma as mensagens do cache e dar o seu devido destino a elas. As mensagens podem ser de 3 tipos diferentes, seja uma mensagem nova, uma mensagem antiga recuperada ou uma mensagem espcial de solicitação de sincronização. Utilizando essa thread junto ao cache, o programa consegue receber e tratar de forma correta novos pacotes minimizando ao máximo a perda de pacotes, já que a thread que espera por novos dados apenas adiciona no cache e fica aguardando novos, enquanto a thread pkgSort realiza a filtragem dessa mensangens, já que ela não precisa aguradar nada.
   
   A ultima thread que é executada sozinha no programa é a eventualSync, uma thread responsável por executar solicitações de sincronização para os nós da rede para garantir que as mensagens se mantenham atualizadas. Essa solicitação é realizada de X em X tempo, sendo esse X definito em código. Dessa forma, mesmo que um pacote se perca, aquela mensagem não vai ser perdida já que para isso acontecer ela teria que falhar na vinda de todos os computadores da rede. 
+  
+  Um dos desafios chave desse problema é a questão da ordenação das mensagens. Manter a ordem das mensangens em todos os usuários de incio é uma tarefa dificil, afinal, devido a caracteristica da comunicação via pacotes, mesmo enviando para todos os usuários ao mesmo tempo não existe nenhuma garantia de que aquele pacote irá chegar ao mesmo tempo para todos os usuários e nenhuma outra suposição baseada em tempo. Dessa forma, a sincronia das mensagens não pode utilizar como parâmetro a ordem de chegada dos pacotes. Para resolver esse problema, foi pensado o seguinte: Cada mensagem (lembrando que: mensagem ≠ pacote) precisa ter um indice universal que indique em qual ordem ela deve ficar; cada mensagem precisa de uma forma de identificação unica, para que não exista problemas em caso de duas mensagens possuirem o mesmo indice ou mensagens duplicadas; deve haver um algorítimo unico que ordene as mensagens de forma que garanta que, independente das maquinas, as mensagens A, B, C, ... N possuam a mesma ordem em todos os nós. Dessa forma a ordenação total das mensagens consegue ser garantida.
 
-  Um dos desafios chave desse problema é a questão da ordenação das mensagens. Manter a ordem das mensangens em todos os usuários é uma tarefa, de incio, dificil, afinal, devido a caracteristica da comunicação via pacotes, mesmo enviando para todos os usuários ao mesmo tempo não existe nenhuma garantia de que aquele pacote irá chegar ao mesmo tempo para todos os usuários e nem se ele irá de fato chegar. Dessa forma, a sincronia das mensagens não pode utilizar como parâmetro a ordem de chegada dos pacotes. Para resolver esse problema, foi pensado o seguinte: Cada mensagem (lembrando que: mensagem ≠ pacote) precisa ter um indice universal que indique em qual ordem ela deve ficar; cada mensagem precisa de uma forma de identificação unica, para que não exista problemas em caso de duas mensagens possuirem o mesmo indice; deve haver um algorítimo unico que ordene as mensagens de forma que garanta que, independente das maquinas, as mensagens A, B, C, ... N possuam a mesma ordem para todos.
+  Outro ponto importante é que o sistema utiliza o protocolo de transporte User Datagram Protocol (UDP) que é um tipo de protocolo de troca de pacotes mais veloz e simples mas que não garante que esses datagramas vão de fato chegar ao destino e nem há nativamente nenhum tipo de confirmação da chegada (ou não). Por esse motivo, o sistema inteiro deve ser pensado na perspectiva de que podem haver falhas que possam comprometer a integridade do sistema, já que um pacote que não chega para um usuário faz com que ele perca uma mensagem e afeta a ordenação das demais. Para solucionar isso foi pensado que o sistema deve possuir uma forma de sincronizar as conversas locais de cada nó de forma que garanta que todos os nós vão possuir as mesmas mensagens. A solução pensanda é que periodicamente cada nó solicite para os demais que enviem suas mensagens contidas na conversa com exceção daquelas que o proprio solicitando enviou (já que é garantido que ele já as possui). Dessa forma, recebendo as mensagens das conversas antigas dos nós, o nó que está sincronizando apenas analisa quais mensagens não estão presentes em sua conversa e as adiciona. Esta solução minimiza consideralvelmente a chance de perder uma mensagem e garante que toda mensagem trocada no sistema vai eventualmente está presente em todas as conversas. A unica forma de um usuário não possuir uma mensagem é se caso o pacote contendo aquela mensagem em específico falhe no momento em que ela foi enviada e falhe em cada um dos nós durante a sincronização já que pelo menos um pacote com ela precisa chegar, o que faria com que o usuário ficasse sem aquela mensagem por alguns segundos até a proxima sincronização. 
+  
+</p>
 
+# 3. Resultados
+
+<p style="text-align: justify;">
+  Esta secção apresenta os resultados da implementação das soluções discutida na secção anterior e quais decisões de código foram realizadas para cumprir com o plano traçado para atender os requisitos do problema.
+
+  - Envio e recebimento das mensagens
+  O envio e recebimento das mensagens foi implementado utilizando a biblioteca socket nativa da linguagem python. A função send_message é responsável por enviar uma unica mensagem definida pelo tipo e conteudo a todos os pares ip/porta que compõe o grupo (os membros). Antes de enviar a mensangem, a função gera o objeto do tipo Mensagem que vai guardar aquela mensagem na conversa e o adiciona na lista. No caso do recebimento das mensagens, como apresentado na secção anterior, a função listner fica "escutando" a porta do socket aguardando por novos pacotes e os adicionando em um cachê temporário que é tratado em uma thread paralela com a função pkgSort. 
+  
   - Indice e identificador unico
 
-  Para garantir o indice e a forma de identificação unica foram pensadas diversas soluções utilizando geradores de ID, encadeamento de mensagens, entre outros, porém, a adotada foi mais simples e mais eficiente: a utilização de um Relógio Lógico de Lamport. Relógios lógicos são utilizados em sistemas distribuídos para sincronização de mensagens entre sistemas, eles consistem em contadores que se incrementam com suas ações e esse valor do contador é utilizado como um "timestamp" que indica a hora lógica em que aquele evento ocorreu. 
+  Para garantir o indice e a forma de identificação unica das mensangens, foram pensadas diversas soluções utilizando geradores de ID, encadeamento de mensagens, entre outros, porém, a adotada foi mais simples e mais eficiente: a utilização de um Relógio Lógico de Lamport. Relógios lógicos são utilizados em sistemas distribuídos para sincronização de mensagens entre sistemas, eles consistem em contadores que se incrementam com suas ações e esse valor do contador é utilizado como um "timestamp" que indica a hora lógica em que aquele evento ocorreu. 
   
   No sistema implementado, já que a ação é cada nó enviar a mensagem para todos os outros nós, o increemento do relógio acontece apenas no envio da mensagem e o reajuste do relógio no recebimento. Os relógios de cada nó não precisam ter o mesmo valor para estarem sincronizados, eles precisam apenas respeitar a seguinte regra: Toda mensagem recebida é um evento do passado, ou seja, foi escrita e enviada em um tempo lógico do passado, dessa forma elas obrigatóriamente devem possuir um tempo lógico menor do que o do relógio lógico do nó que está a recebendo. Caso o timestamp dela seja maior do que a hora lógica do nó, esta mensagem está vindo do futuro (o que é impossivel) então isso significa que o relógio está atrasado e deve ser ajustado para o tempo lógico N + 1, sendo N o timestamp da mensagem. A figura abaixo representa visualmente o processo de troca de mensagens entre dois nós com seus respectivos relógios lógicos.
 </p>
 
 ![Visualização do relógio logico.](https://github.com/JFooley/PBL-Redes-Problema2-WhatsApp-II/blob/b4f6e379d137003a113947a62d037f8aee8e7b68/Imagens/Imagem%201.png)
 
-
-# 3. Resultados
 <p style="text-align: justify;">
+  O nó A envia uma mensagem para o nó B no tempo lógico 10, esta mensagem é recebida no tempo lógico 15 e como 10 é menor que 15, o relógio de B está ajustado corretamente. Já no caso da segunda mensagem, B envia para A uma mensagem com o tempo lógico 25 que é recebida no tempo 23 do nó A, já que 25 > 23 o relógio de A está atrasado e portante deve ser ajustado para o tempo lógico 26 (25 + 1).
+
+  Uma vez que os relógios só aumentam seus valores e cada mensagem incrementa o relógio na hora de enviar (ou seja, ela possui a hora anterior +1), o timestamp da hora lógia das mensagens pode ser utilizado como o indice para odernar as mensagens. Cada nó, ao enviar uma mensagem, passa na frente dos outros que possuam a mesma hora e "puxa" os demais nós para uma hora lógica ajustada acima (caso estejam atrás). 
+  
+  Um problema dessa abordagem é o caso de duas mensagens serem enviadas ao mesmo tempo e coincidirem o tempo lógico ou de algum nó não recebe alguma mensagem e isso gerar um atraso que possa fazer duas mensagens terem timestamps iguais. Sendo assim, esse timestamp não pode ser utilizado como o identificador unico da mensagem na rede e não garante sozinho a ordem do todo, porém, ele garante a unicidade e a ordem das mensagens do nó que está enviando elas, já que esse contador não pode decrementar e repetir um valor. Para garantir então a unicidade e a ordem na conversa toda basta que as mensagens também guardem uma identificação de quem as enviou. Já que cada nó possui um conjunto ip/porta próprio e unico, utilizando a junção de timestamp + ip/porta conseguimos identificar cada menasagem de forma unica no sistema e utilizar o valor do ip/porta como critério de desempate ao ordernar as mensagens com o timestamp. 
+
+  - Ordenação total
+  
+  Tendo as mensagens universalmente identificadas e com um atributo que dá ordem a elas (timestamp), a classe dos objetos "Mensagem" (que guardam as informações de cada mensagem) foi modificada para que suas instancias sejam comparadas utilizando o par timestamp + usuário e considere como iguais dois objetos com valores iguais nesses atributos. Essa modificação permite utilizar uma função sort padrão das listas sem a necessidade de implementar um algorítimo de ordenação e garante que todos vão possuir apenas uma cópia de cada mensagem unica e elas serão ordenadas de forma igual para todos os nós.
+
+  - Conversa
   
 </p>
 
 # 4. Considerações finais
 <p style="text-align: justify;">
-  
+
+  falhar conhecidas:
+  - Inundação de pacotes na rede que escala com o tamanho da conversa
+  - Dessincronização temporária no caso da perda de pacote
+
+  melhorias:
+  - Mandar apenas os IDs das mensagens e devolverem só as mensagens que faltam deixando o processo mais eficiente 
+  - Implementar um gatilho de sincronização mais eficiente 
+  - Implementar um campo de "nome" e um broadcast na rede que retorna os dispositivos online e mostra ao usuário permitindo ele saber qual o IP identificado pelo nome com mais facilidade e criar o grupo apenas escrevendo nome dos participantes
 </p>
 
 # 5. Referencias
