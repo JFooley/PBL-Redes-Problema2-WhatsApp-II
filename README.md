@@ -18,7 +18,7 @@
 
 # 1. Introdução
 
-<p style="text-align: justify;>
+<p style="text-align: justify;">
   A comunicação é um dos aspectos mais importantes para o funcionamento da sociedade. Desde a antiguidade a humanidade sempre buscou formas de se comunicar a distancia, incialmente através de mensageiros, cartas e bilhetes até posteriormente com meios mais modernos como telefones, telégrafos e etc. Com a internet não foi diferente, a comunicação rápida e de larga escalabilidade oferecida pelas redes de computadores permitiu um novo avanço: a troca de mensagens instantâneas. O surgimentos das redes sociais ampliou ainda mais esse aspecto, se tornando uma feature quase que enssencial dentro desses ambientes.
   
   Junto com esse fenomeno uma questão se torna bastante relevante: a proteção dos dados dessas converasas. Sejam conversas pessoais ou decisões importantes de empresas, a privacidade do que é transmitido através dos pacotes pela rede é essencial uma vez que esses dados circulam por diversos dispositivos até chegarem em seus destinos finais e podem ser interceptados por sniffers de rede ou outras tecnologias nos nós. Sendo, assim a criptografia se apresenta como um aspecto importante na implementação desses mensageiros.
