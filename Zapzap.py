@@ -127,10 +127,13 @@ def pkgSort(sock, clock):
 # Envia a sua conversa
 def sendChat(sock, clock, adress):
     for mensagemOBJ in conversa:
-        lamport_time = 0
-        partMessage = pickle.dumps(mensagemOBJ)
-        data = pickle.dumps((partMessage, lamport_time, CSP))
-        sock.sendto(data, adress)
+        if mensagemOBJ.user != adress:
+            lamport_time = 0
+            partMessage = pickle.dumps(mensagemOBJ)
+            data = pickle.dumps((partMessage, lamport_time, CSP))
+            sock.sendto(data, adress)
+
+            print(f"CSP: {mensagemOBJ.user} to {adress}")
 
 # A cada X segundos realiza uma sincronização
 def eventualSync(sock, clock):
